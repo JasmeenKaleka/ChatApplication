@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat Room</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-light: #f9fafb;
+      --bg-dark: #1f2937;
+      --text-light: #111827;
+      --text-dark: #f3f4f6;
+      --accent: #4f46e5;
+
+      --theme-default: #f3f4f6;
+      --theme-blue: #e0f2fe;
+      --theme-green: #dcfce7;
+      --theme-pink: #fce7f3;
+      --theme-yellow: #fef9c3;
+      --theme-lavender: #ede9fe;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--theme-default);
+      color: var(--text-light);
+      transition: 0.3s;
+    }
+
+    body.dark {
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    body.dark .message-meta {
+    color: #d1d5db; /* or any light color that fits your theme */
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: var(--accent);
+      color: white;
+    }
+
+    .nav-left {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .nav-right {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    select, button {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.9rem;
+      border-radius: 0.4rem;
+      border: none;
+      cursor: pointer;
+    }
+
+    .chat-box {
+      height: calc(100vh - 170px);
+      overflow-y: auto;
+      padding: 1rem 2rem;
+      scrollbar-width: thin;
+      scrollbar-color: #9ca3af transparent;
+    }
+    body.dark .chat-box {
+      color: #1b1c1e;
+    }
+
+
+    .chat-box::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-box::-webkit-scrollbar-thumb {
+      background: #9ca3af;
+      border-radius: 4px;
+    }
+
+    .message {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      background-color: #6366f1;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      margin-right: 1rem;
+      font-size: 1rem;
+    }
+
+    .message-content {
+      max-width: 70%;
+    }
+
+    .message-text {
+      padding: 0.75rem 1rem;
+      background-color: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .message-meta {
+      font-size: 0.75rem;
+      margin-top: 4px;
+      opacity: 0.6;
+    }
+
+    body.dark .message-text {
+      background-color: #374151;
+      color: #f3f4f6;
+    }
+
+    .input-area {
+      padding: 1rem 2rem;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .input-area textarea {
+      flex: 1;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      border: 1px solid #d1d5db;
+      resize: none;
+      font-size: 1rem;
+    }
+
+    .input-area button {
+      background-color: var(--accent);
+      color: white;
+    }
+
+    .format-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .format-buttons button {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    body.dark .format-buttons button {
+      background: #4b5563;
+      color: #f3f4f6;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <div class="nav-left" id="room-name">Room</div>
+    <div class="nav-right">
+      <select onchange="changeFontSize(this.value)">
+        <option value="small">Small</option>
+        <option value="medium" selected>Medium</option>
+        <option value="large">Big</option>
+      </select>
+      <select onchange="changeTheme(this.value)">
+        <option value="default">Default</option>
+        <option value="blue">Blue</option>
+        <option value="green">Green</option>
+        <option value="pink">Pink</option>
+        <option value="yellow">Yellow</option>
+        <option value="lavender">Lavender</option>
+      </select>
+      <button onclick="toggleDarkMode()">🌙</button>
+    </div>
+  </div>
+
+  <div class="chat-box" id="chat-box">
+    <!-- Messages appear here -->
+  </div>
+
+  <div class="input-area">
+    <div class="format-buttons">
+      <button onclick="formatText('bold')">B</button>
+      <button onclick="formatText('italic')">I</button>
+      <button onclick="formatText('link')">🔗</button>
+    </div>
+    <textarea id="msg-input" rows="2" placeholder="Type your message..."></textarea>
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+<script>
+  const username = sessionStorage.getItem("username");
+  const room = sessionStorage.getItem("room");
+
+  if (!username || !room) {
+    alert("Session expired. Redirecting to login.");
+    window.location.href = "index.html";
+  }
+
+  document.getElementById("room-name").textContent = room;
+
+  function sendMessage() {
+    const msgInput = document.getElementById("msg-input");
+    const msg = msgInput.value.trim();
+    if (!msg) return;
+
+    const chatBox = document.getElementById("chat-box");
+
+    const messageEl = document.createElement("div");
+    messageEl.className = "message";
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = username[0].toUpperCase();
+
+    const msgContent = document.createElement("div");
+    msgContent.className = "message-content";
+
+    const text = document.createElement("div");
+    text.className = "message-text";
+    text.innerHTML = parseMarkdown(msg); // ✅ Parsed markdown message
+
+    const meta = document.createElement("div");
+    meta.className = "message-meta";
+    meta.textContent = `${username} • ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+
+    msgContent.appendChild(text);
+    msgContent.appendChild(meta);
+
+    messageEl.appendChild(avatar);
+    messageEl.appendChild(msgContent);
+
+    chatBox.appendChild(messageEl);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    msgInput.value = "";
+  }
+
+  function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+  }
+
+  function changeFontSize(size) {
+    const html = document.documentElement;
+    if (size === "small") html.style.fontSize = "14px";
+    else if (size === "medium") html.style.fontSize = "16px";
+    else html.style.fontSize = "18px";
+  }
+
+  function changeTheme(theme) {
+    let color;
+    switch(theme) {
+      case 'blue': color = 'var(--theme-blue)'; break;
+      case 'green': color = 'var(--theme-green)'; break;
+      case 'pink': color = 'var(--theme-pink)'; break;
+      case 'yellow': color = 'var(--theme-yellow)'; break;
+      case 'lavender': color = 'var(--theme-lavender)'; break;
+      default: color = 'var(--theme-default)';
+    }
+    document.body.style.backgroundColor = color;
+  }
+
+  function formatText(type) {
+    const input = document.getElementById("msg-input");
+    const selected = input.value;
+
+    switch(type) {
+      case 'bold':
+        input.value = `**${selected}**`;
+        break;
+      case 'italic':
+        input.value = `*${selected}*`;
+        break;
+      case 'link':
+        input.value = `[${selected}](https://example.com)`;
+        break;
+    }
+  }
+
+  document.getElementById("msg-input").addEventListener("keydown", function (e) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault(); // Prevent new line
+    sendMessage();
+  }
+});
+
+
+ function parseMarkdown(text) {
+  // Escape special HTML characters to prevent XSS attacks
+  text = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  // Parse links first to preserve them inside bold/italic
+  text = text.replace(/\[(.*?)\]\((https?:\/\/[^\s]+)\)/g, '<a href="$2" target="_blank" style="color:#3b82f6;">$1</a>');
+
+  // Bold + Italic: ***text***
+  text = text.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
+
+  // Bold: **text**
+  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+  // Italic: *text*
+  text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+  return text;
+}
+</script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+
+
+  socket.emit("joinRoom", room, username);
+
+  document.getElementById("send-btn").onclick = () => {
+    const msg = document.getElementById("msg-input").value;
+    socket.emit("sendMessage", { room, username, text: msg });
+    document.getElementById("msg-input").value = "";
+  };
+
+  socket.on("message", (msg) => {
+    // Add message to chat (re-use your formatting logic here)
+    const chatBox = document.getElementById("chat-box");
+    const msgEl = document.createElement("div");
+    msgEl.innerHTML = `<strong>${msg.username}</strong>: ${msg.text} <br><small>${msg.time}</small>`;
+    chatBox.appendChild(msgEl);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  });
+</script>
+
+
+</body>
+</html>

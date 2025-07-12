@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Chat App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-light: #f3f4f6;
+      --bg-dark: #1f2937;
+      --card-light: #ffffff;
+      --card-dark: #2d3748;
+      --text-light: #111827;
+      --text-dark: #e5e7eb;
+      --accent: #6366f1;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: var(--bg-light);
+      color: var(--text-light);
+      transition: all 0.3s ease;
+    }
+
+    body.dark {
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    .login-card {
+      background-color: var(--card-light);
+      padding: 2rem;
+      border-radius: 1rem;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    body.dark .login-card {
+      background-color: var(--card-dark);
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+      font-size: 1.8rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid #d1d5db;
+      font-size: 1rem;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 0.5rem;
+      background-color: var(--accent);
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #4f46e5;
+    }
+
+    .toggle {
+      margin-top: 1.5rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: rgb(21, 21, 22);
+    }
+
+    body.dark .toggle {
+      color: var(--text-dark);
+    }
+
+
+    .footer-note {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-card">
+    <h1>Welcome to ChatApp</h1>
+    <input type="text" id="username" placeholder="Enter your username" />
+    <button onclick="login()">Login</button>
+    <div class="toggle" onclick="toggleDarkMode()"> Theme ☀ </div>
+    <div class="footer-note">Welcome to ChatApp for amazing seemless chatting.</div>
+  </div>
+
+  <script>
+    function login() {
+      const username = document.getElementById('username').value.trim();
+      if (!username) {
+        alert("Please enter a username.");
+        return;
+      }
+      sessionStorage.setItem("username", username);
+      window.location.href = "chatlist.html";
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+    }
+  </script>
+
+</body>
+</html>
